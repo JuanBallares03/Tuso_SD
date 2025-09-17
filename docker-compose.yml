@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: tuso_system
+      POSTGRES_USER: tuso
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # RabbitMQ para mensajería
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: tuso
+      RABBITMQ_DEFAULT_PASS: password123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  # Servicio de Pedidos (Orquestador)
+  pedidos-service:
+    build:
+      context: ./services/pedidos
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3001
+      DB_HOST: postgres
+      DB_USER: tuso
+      DB_PASSWORD: password123
+      DB_NAME: pedidos_db
+      RABBITMQ_URL: amqp://tuso:password123@rabbitmq:5672
+      JWT_SECRET: mi-super-secreto-jwt-2024
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: unless-stopped
+
+  # Servicio de Inventario
+  inventario-service:
+    build:
+      context: ./services/inventario
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3002
+      DB_HOST: postgres
+      DB_USER: tuso
+      DB_PASSWORD: password123
+      DB_NAME: inventario_db
+      RABBITMQ_URL: amqp://tuso:password123@rabbitmq:5672
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: unless-stopped
+
+  # Servicio de Pagos
+  pagos-service:
+    build:
+      context: ./services/pagos
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3003
+      DB_HOST: postgres
+      DB_USER: tuso
+      DB_PASSWORD: password123
+      DB_NAME: pagos_db
+      RABBITMQ_URL: amqp://tuso:password123@rabbitmq:5672
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: unless-stopped
+
+  # Servicio de Catálogo
+  catalogo-service:
+    build:
+      context: ./services/catalogo
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3004
+      DB_HOST: postgres
+      DB_USER: tuso
+      DB_PASSWORD: password123
+      DB_NAME: catalogo_db
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
