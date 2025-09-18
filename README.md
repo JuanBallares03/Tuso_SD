@@ -35,8 +35,8 @@ Sistema de reservas turísticas implementando arquitectura de microservicios con
 
 ### 1. Clonar repositorio
 ```bash
-git clone https://github.com/tu-usuario/tuso-distributed-system.git
-cd tuso-distributed-system
+git clone https://github.com/JuanBallares03/Tuso_SD
+cd Tuso_SD
 ```
 
 ### 2. Levantar sistema completo
