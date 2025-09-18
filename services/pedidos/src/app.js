@@ -74,7 +74,7 @@ app.post('/pedidos', authenticateToken, async (req, res) => {
     const result = await pool.query(
       'INSERT INTO pedidos (id, saga_id, usuario_id, producto_id, cantidad, estado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       // ¡Aquí está el cambio!
-      [pedidoId, sagaId, req.user.usuarioId, productoId, cantidad, SagaState.INICIADA] 
+      [pedidoId, sagaId, req.user.userId || 1, productoId, cantidad, SagaState.INICIADA] 
     )
     
     // Iniciar estado de Saga
