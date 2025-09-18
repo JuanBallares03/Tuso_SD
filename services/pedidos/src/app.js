@@ -73,8 +73,9 @@ app.post('/pedidos', authenticateToken, async (req, res) => {
     // Crear pedido en base de datos
     const result = await pool.query(
       'INSERT INTO pedidos (id, saga_id, usuario_id, producto_id, cantidad, estado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [pedidoId, sagaId, req.user.userId, productoId, cantidad, SagaState.INICIADA]
-    );
+      // ¡Aquí está el cambio!
+      [pedidoId, sagaId, req.user.usuarioId, productoId, cantidad, SagaState.INICIADA] 
+    )
     
     // Iniciar estado de Saga
     await pool.query(
@@ -83,11 +84,12 @@ app.post('/pedidos', authenticateToken, async (req, res) => {
     );
     
     // Enviar evento para reservar inventario
-    await publishSagaEvent(sagaId, 'RESERVAR_INVENTARIO', {
-      productoId,
-      cantidad,
-      pedidoId
-    });
+  await publishSagaEvent(sagaId, 'RESERVAR_INVENTARIO', {
+    productoId,
+    cantidad,
+    pedidoId,
+    metodoPago
+  });
     
     logger.info('Pedido creado', { sagaId, pedidoId, userId: req.user.userId });
     
